@@ -6,6 +6,7 @@
 #include "../drivers/keyboard.h"
 #include "../drivers/network.h"
 #include "../drivers/storage.h"
+#include "../runtime/runtime.h"
 #include "../userspace/userspace.h"
 
 #include <stddef.h>
@@ -29,6 +30,12 @@ void kernel_main(void) {
     keyboard_init();
     storage_init();
     network_init();
+
+    if (runtime_init() == RUNTIME_STATUS_OK) {
+        console_write_line("[kernel] runtime subsystem ready");
+    } else {
+        console_write_line("[kernel] runtime subsystem failed to initialize");
+    }
 
     display_write_text("Drivers initialised", 1, 0, 0x1A);
 

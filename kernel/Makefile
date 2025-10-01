@@ -5,7 +5,7 @@ CC ?= clang
 LD ?= ld
 RUSTC ?= rustc
 
-CFLAGS := -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector -fno-pic -m64 -mno-red-zone -I. -I../drivers -I../userspace
+CFLAGS := -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector -fno-pic -m64 -mno-red-zone -I. -I../drivers -I../userspace -I../runtime
 ASFLAGS := -ffreestanding -fno-pic -m64 -mno-red-zone
 LDFLAGS := -nostdlib -z max-page-size=0x1000 -T linker.ld
 RUSTFLAGS := --target x86_64-unknown-none -C panic=abort -O --crate-type staticlib
@@ -16,8 +16,10 @@ DRIVER_SOURCES := ../drivers/keyboard.c ../drivers/display.c ../drivers/storage.
 DRIVER_OBJECTS := $(patsubst ../drivers/%.c,$(BUILD_DIR)/driver_%.o,$(DRIVER_SOURCES))
 USER_SOURCES := ../userspace/init.c ../userspace/shell.c ../userspace/ls.c ../userspace/cat.c ../userspace/echo.c
 USER_OBJECTS := $(patsubst ../userspace/%.c,$(BUILD_DIR)/user_%.o,$(USER_SOURCES))
+RUNTIME_SOURCES := ../runtime/container.c
+RUNTIME_OBJECTS := $(patsubst ../runtime/%.c,$(BUILD_DIR)/runtime_%.o,$(RUNTIME_SOURCES))
 ASM_OBJECTS := $(BUILD_DIR)/boot.o $(BUILD_DIR)/context_switch.o
-OBJS := $(ASM_OBJECTS) $(C_OBJECTS) $(DRIVER_OBJECTS) $(USER_OBJECTS)
+OBJS := $(ASM_OBJECTS) $(C_OBJECTS) $(DRIVER_OBJECTS) $(USER_OBJECTS) $(RUNTIME_OBJECTS)
 
 .PHONY: all clean
 
@@ -39,6 +41,9 @@ $(BUILD_DIR)/driver_%.o: ../drivers/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/user_%.o: ../userspace/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/runtime_%.o: ../runtime/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/librust.a: lib.rs | $(BUILD_DIR)
