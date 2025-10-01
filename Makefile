@@ -10,11 +10,8 @@ all: $(KERNEL_ELF)
 $(KERNEL_ELF):
 	$(MAKE) -C kernel all
 
-iso: all
-	mkdir -p $(ISO_DIR)/boot/grub
-	cp $(KERNEL_ELF) $(ISO_DIR)/boot/kernel.elf
-	cp bootloader/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
-	grub-mkrescue -o $(ISO_IMAGE) $(ISO_DIR)
+iso:
+	bash installer/build_iso.sh
 
 run: iso
 	qemu-system-x86_64 -cdrom $(ISO_IMAGE) -serial stdio
