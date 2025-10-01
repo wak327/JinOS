@@ -5,7 +5,7 @@ CC ?= clang
 LD ?= ld
 RUSTC ?= rustc
 
-CFLAGS := -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector -fno-pic -m64 -mno-red-zone -I. -I../drivers -I../userspace -I../runtime -I../gui
+CFLAGS := -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector -fno-pic -m64 -mno-red-zone -I. -I../drivers -I../userspace -I../runtime -I../gui -I../services
 ASFLAGS := -ffreestanding -fno-pic -m64 -mno-red-zone
 LDFLAGS := -nostdlib -z max-page-size=0x1000 -T linker.ld
 RUSTFLAGS := --target x86_64-unknown-none -C panic=abort -O --crate-type staticlib
@@ -20,8 +20,10 @@ RUNTIME_SOURCES := ../runtime/container.c
 RUNTIME_OBJECTS := $(patsubst ../runtime/%.c,$(BUILD_DIR)/runtime_%.o,$(RUNTIME_SOURCES))
 GUI_SOURCES := ../gui/server.c ../gui/wm.c ../gui/desktop.c
 GUI_OBJECTS := $(patsubst ../gui/%.c,$(BUILD_DIR)/gui_%.o,$(GUI_SOURCES))
+SERVICE_SOURCES := ../services/init.c ../services/logd.c ../services/netd.c
+SERVICE_OBJECTS := $(patsubst ../services/%.c,$(BUILD_DIR)/service_%.o,$(SERVICE_SOURCES))
 ASM_OBJECTS := $(BUILD_DIR)/boot.o $(BUILD_DIR)/context_switch.o
-OBJS := $(ASM_OBJECTS) $(C_OBJECTS) $(DRIVER_OBJECTS) $(USER_OBJECTS) $(RUNTIME_OBJECTS) $(GUI_OBJECTS)
+OBJS := $(ASM_OBJECTS) $(C_OBJECTS) $(DRIVER_OBJECTS) $(USER_OBJECTS) $(RUNTIME_OBJECTS) $(GUI_OBJECTS) $(SERVICE_OBJECTS)
 
 .PHONY: all clean
 
@@ -49,6 +51,9 @@ $(BUILD_DIR)/runtime_%.o: ../runtime/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/gui_%.o: ../gui/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/service_%.o: ../services/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/librust.a: lib.rs | $(BUILD_DIR)
