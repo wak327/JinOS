@@ -5,15 +5,17 @@ CC ?= clang
 LD ?= ld
 RUSTC ?= rustc
 
-CFLAGS := -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector -fno-pic -m64 -mno-red-zone
+CFLAGS := -Wall -Wextra -std=c11 -ffreestanding -fno-stack-protector -fno-pic -m64 -mno-red-zone -I. -I../drivers
 ASFLAGS := -ffreestanding -fno-pic -m64 -mno-red-zone
 LDFLAGS := -nostdlib -z max-page-size=0x1000 -T linker.ld
 RUSTFLAGS := --target x86_64-unknown-none -C panic=abort -O --crate-type staticlib
 
 C_SOURCES := main.c console.c memory.c scheduler.c
 C_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
+DRIVER_SOURCES := ../drivers/keyboard.c ../drivers/display.c ../drivers/storage.c ../drivers/network.c
+DRIVER_OBJECTS := $(patsubst ../drivers/%.c,$(BUILD_DIR)/driver_%.o,$(DRIVER_SOURCES))
 ASM_OBJECTS := $(BUILD_DIR)/boot.o $(BUILD_DIR)/context_switch.o
-OBJS := $(ASM_OBJECTS) $(C_OBJECTS)
+OBJS := $(ASM_OBJECTS) $(C_OBJECTS) $(DRIVER_OBJECTS)
 
 .PHONY: all clean
 
@@ -29,6 +31,9 @@ $(BUILD_DIR)/context_switch.o: context_switch.S | $(BUILD_DIR)
 	$(CC) $(ASFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/driver_%.o: ../drivers/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/librust.a: lib.rs | $(BUILD_DIR)
