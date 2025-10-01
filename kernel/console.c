@@ -35,7 +35,7 @@ static void console_scroll(void) {
     }
 }
 
-static void console_putc(char c) {
+static void console_output_char(char c) {
     if (c == '\n') {
         console_newline();
         return;
@@ -78,7 +78,7 @@ void console_write(const char *str) {
     }
 
     for (size_t i = 0; str[i] != '\0'; ++i) {
-        console_putc(str[i]);
+        console_output_char(str[i]);
     }
 }
 
@@ -101,4 +101,8 @@ void console_write_hex(uint64_t value) {
     }
     output[16] = '\0';
     console_write(output);
+}
+
+void console_putc(char c) {
+    console_output_char(c);
 }
